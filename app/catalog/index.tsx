@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  Animated,
   Modal,
   Pressable,
   ScrollView,
@@ -103,7 +102,6 @@ export default function CatalogScreen() {
   const [regionSearch, setRegionSearch] = useState('');
   const [filterMode, setFilterMode] = useState<FilterMode>('choose');
   const [expandedRegion, setExpandedRegion] = useState<string | null>(null);
-  const slideAnim = useRef(new Animated.Value(0)).current;
 
   const filtered = useMemo(
     () => applyFilters(listings, filters, params as Record<string, string>),
@@ -116,11 +114,10 @@ export default function CatalogScreen() {
   const openFilter = () => {
     setDraftFilters({ ...filters });
     setFilterOpen(true);
-    Animated.spring(slideAnim, { toValue: 1, useNativeDriver: true, tension: 65, friction: 11 }).start();
   };
 
   const closeFilter = () => {
-    Animated.timing(slideAnim, { toValue: 0, duration: 220, useNativeDriver: true }).start(() => setFilterOpen(false));
+    setFilterOpen(false);
   };
 
   const applyFilter = () => {
@@ -172,8 +169,6 @@ export default function CatalogScreen() {
       </View>
     </Pressable>
   );
-
-  const translateY = slideAnim.interpolate({ inputRange: [0, 1], outputRange: [700, 0] });
 
   const hasActiveFilters = Object.entries(filters).some(([k, v]) => {
     const def = DEFAULT_FILTERS[k as keyof Filters];
@@ -248,7 +243,7 @@ export default function CatalogScreen() {
         <TouchableWithoutFeedback onPress={closeFilter}>
           <View style={styles.overlay} />
         </TouchableWithoutFeedback>
-        <Animated.View style={[styles.filterSheet, { backgroundColor: colors.bg, transform: [{ translateY }] }]}>
+        <View style={[styles.filterSheet, { backgroundColor: colors.bg }]}>
           <View style={[styles.sheetHeader, { borderBottomColor: colors.border }]}>
             <Pressable onPress={resetFilter}>
               <Text style={styles.resetText}>{t.reset}</Text>
@@ -464,7 +459,7 @@ export default function CatalogScreen() {
               </Text>
             </Pressable>
           </View>
-        </Animated.View>
+        </View>
       </Modal>
 
       {/* ── REGION PICKER MODAL ── */}

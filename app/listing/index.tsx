@@ -49,6 +49,9 @@ export default function ListingDetailScreen() {
   const [currentPhoto, setCurrentPhoto] = useState(0);
   const [creditTerm, setCreditTerm] = useState(60);
   const [messageVisible, setMessageVisible] = useState(false);
+  const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
+  const photoViewerRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (id) addRecentlyViewed(id);
@@ -173,7 +176,9 @@ export default function ListingDetailScreen() {
               style={styles.photoScroll}
             >
               {photos.map((uri, i) => (
-                <Image key={i} source={{ uri }} style={styles.photoImg} resizeMode="cover" />
+                <Pressable key={i} onPress={() => { setPhotoViewerIndex(i); setPhotoViewerVisible(true); }}>
+                  <Image source={{ uri }} style={styles.photoImg} resizeMode="cover" />
+                </Pressable>
               ))}
             </ScrollView>
           ) : (
@@ -398,6 +403,46 @@ export default function ListingDetailScreen() {
         </View>
       </ScrollView>
 
+      {/* Full-screen photo viewer */}
+      <Modal
+        visible={photoViewerVisible}
+        transparent
+        statusBarTranslucent
+        onRequestClose={() => setPhotoViewerVisible(false)}
+      >
+        <View style={styles.photoViewer}>
+          <SafeAreaView edges={['top']} style={{ zIndex: 10 }}>
+            <View style={styles.photoViewerHeader}>
+              <Pressable onPress={() => setPhotoViewerVisible(false)} style={styles.photoViewerClose}>
+                <Ionicons name="close" size={26} color="#fff" />
+              </Pressable>
+              <Text style={styles.photoViewerCounter}>{photoViewerIndex + 1} из {photos.length}</Text>
+              <View style={{ width: 44 }} />
+            </View>
+          </SafeAreaView>
+          <ScrollView
+            ref={photoViewerRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(e) => {
+              const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
+              setPhotoViewerIndex(idx);
+            }}
+            onLayout={() => {
+              photoViewerRef.current?.scrollTo({ x: photoViewerIndex * SCREEN_W, animated: false });
+            }}
+            style={{ flex: 1 }}
+          >
+            {photos.map((uri, i) => (
+              <View key={i} style={styles.photoViewerItem}>
+                <Image source={{ uri }} style={styles.photoViewerImg} resizeMode="contain" />
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
+
       {/* Message modal */}
       <Modal visible={messageVisible} transparent animationType="slide" onRequestClose={() => setMessageVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setMessageVisible(false)}>
@@ -427,6 +472,13 @@ export default function ListingDetailScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+
+  photoViewer: { flex: 1, backgroundColor: '#000' },
+  photoViewerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10 },
+  photoViewerClose: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  photoViewerCounter: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  photoViewerItem: { width: SCREEN_W, flex: 1, alignItems: 'center', justifyContent: 'center' },
+  photoViewerImg: { width: SCREEN_W, height: SCREEN_W * 1.1 },
   floatingHeaderWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
   floatingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
   floatBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },

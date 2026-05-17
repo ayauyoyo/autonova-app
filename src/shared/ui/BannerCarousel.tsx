@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useApp } from '../store/AppContext';
 
 const { width } = Dimensions.get('window');
@@ -10,18 +10,11 @@ const AUTO_SCROLL_INTERVAL = 4000;
 export function BannerCarousel() {
   const { banners } = useApp();
   const [current, setCurrent] = useState(0);
-  const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (banners.length <= 1) return;
     const timer = setInterval(() => {
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-      ]).start();
-      setTimeout(() => {
-        setCurrent((prev) => (prev + 1) % banners.length);
-      }, 300);
+      setCurrent((prev) => (prev + 1) % banners.length);
     }, AUTO_SCROLL_INTERVAL);
     return () => clearInterval(timer);
   }, [banners.length]);
@@ -32,40 +25,29 @@ export function BannerCarousel() {
 
   return (
     <View style={styles.wrapper}>
-      <Animated.View style={{ opacity }}>
-        <Pressable
-          style={[styles.banner, { backgroundColor: banner.bgColor, width: BANNER_W }]}
-          onPress={() => {}}
-        >
-          {banner.imageUrl ? (
-            <Image source={{ uri: banner.imageUrl }} style={styles.bgImage} resizeMode="cover" />
-          ) : null}
-          <View style={[styles.overlay, banner.imageUrl ? styles.overlayDark : null]}>
-            <View style={styles.textContent}>
-              <Text style={[styles.title, { color: banner.textColor }]} numberOfLines={2}>
-                {banner.title}
-              </Text>
-              <Text style={[styles.subtitle, { color: banner.textColor }]} numberOfLines={2}>
-                {banner.subtitle}
-              </Text>
-            </View>
+      <Pressable
+        style={[styles.banner, { backgroundColor: banner.bgColor, width: BANNER_W }]}
+        onPress={() => {}}
+      >
+        {banner.imageUrl ? (
+          <Image source={{ uri: banner.imageUrl }} style={styles.bgImage} resizeMode="cover" />
+        ) : null}
+        <View style={[styles.overlay, banner.imageUrl ? styles.overlayDark : null]}>
+          <View style={styles.textContent}>
+            <Text style={[styles.title, { color: banner.textColor }]} numberOfLines={2}>
+              {banner.title}
+            </Text>
+            <Text style={[styles.subtitle, { color: banner.textColor }]} numberOfLines={2}>
+              {banner.subtitle}
+            </Text>
           </View>
-        </Pressable>
-      </Animated.View>
+        </View>
+      </Pressable>
 
       {/* Dots */}
       <View style={styles.dotsRow}>
         {banners.map((b, i) => (
-          <Pressable
-            key={b.id}
-            onPress={() => {
-              Animated.sequence([
-                Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
-                Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-              ]).start();
-              setTimeout(() => setCurrent(i), 200);
-            }}
-          >
+          <Pressable key={b.id} onPress={() => setCurrent(i)}>
             <View style={[
               styles.dot,
               {
