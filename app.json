@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "AutoNova",
+    "slug": "autonova",
+    "scheme": "autonova",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D1B2A"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "kz.autonova.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0D1B2A"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/icon.png",
+      "name": "AutoNova.kz",
+      "shortName": "AutoNova",
+      "description": "Автосалон AutoNova — автомобили с пробегом и новые авто в Казахстане",
+      "themeColor": "#1E4AE9",
+      "backgroundColor": "#ffffff",
+      "lang": "ru"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b3b17ec3-90b1-4b7e-85e0-86b071328e11"
+      }
+    },
+    "owner": "ayau1"
+  }
+}
