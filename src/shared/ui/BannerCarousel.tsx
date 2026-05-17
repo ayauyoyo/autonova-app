@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useApp } from '../store/AppContext';
 
 const { width } = Dimensions.get('window');
@@ -9,60 +9,49 @@ const AUTO_SCROLL_INTERVAL = 4000;
 
 export function BannerCarousel() {
   const { banners } = useApp();
-  const scrollRef = useRef<ScrollView>(null);
   const [current, setCurrent] = useState(0);
+  const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (banners.length <= 1) return;
     const timer = setInterval(() => {
-      setCurrent((prev) => {
-        const next = (prev + 1) % banners.length;
-        scrollRef.current?.scrollTo({ x: next * (BANNER_W + 12), animated: true });
-        return next;
-      });
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      ]).start();
+      setTimeout(() => {
+        setCurrent((prev) => (prev + 1) % banners.length);
+      }, 300);
     }, AUTO_SCROLL_INTERVAL);
     return () => clearInterval(timer);
   }, [banners.length]);
 
   if (banners.length === 0) return null;
 
+  const banner = banners[current];
+
   return (
     <View style={styles.wrapper}>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={BANNER_W + 12}
-        decelerationRate="fast"
-        contentContainerStyle={styles.scrollContent}
-        onMomentumScrollEnd={(e) => {
-          const idx = Math.round(e.nativeEvent.contentOffset.x / (BANNER_W + 12));
-          setCurrent(Math.min(idx, banners.length - 1));
-        }}
-      >
-        {banners.map((banner) => (
-          <Pressable
-            key={banner.id}
-            style={[styles.banner, { backgroundColor: banner.bgColor, width: BANNER_W }]}
-            onPress={() => {}}
-          >
-            {banner.imageUrl ? (
-              <Image source={{ uri: banner.imageUrl }} style={styles.bgImage} resizeMode="cover" />
-            ) : null}
-            <View style={[styles.overlay, banner.imageUrl ? styles.overlayDark : null]}>
-              <View style={styles.textContent}>
-                <Text style={[styles.title, { color: banner.textColor }]} numberOfLines={2}>
-                  {banner.title}
-                </Text>
-                <Text style={[styles.subtitle, { color: banner.textColor }]} numberOfLines={2}>
-                  {banner.subtitle}
-                </Text>
-              </View>
+      <Animated.View style={{ opacity }}>
+        <Pressable
+          style={[styles.banner, { backgroundColor: banner.bgColor, width: BANNER_W }]}
+          onPress={() => {}}
+        >
+          {banner.imageUrl ? (
+            <Image source={{ uri: banner.imageUrl }} style={styles.bgImage} resizeMode="cover" />
+          ) : null}
+          <View style={[styles.overlay, banner.imageUrl ? styles.overlayDark : null]}>
+            <View style={styles.textContent}>
+              <Text style={[styles.title, { color: banner.textColor }]} numberOfLines={2}>
+                {banner.title}
+              </Text>
+              <Text style={[styles.subtitle, { color: banner.textColor }]} numberOfLines={2}>
+                {banner.subtitle}
+              </Text>
             </View>
-          </Pressable>
-        ))}
-      </ScrollView>
+          </View>
+        </Pressable>
+      </Animated.View>
 
       {/* Dots */}
       <View style={styles.dotsRow}>
@@ -70,8 +59,11 @@ export function BannerCarousel() {
           <Pressable
             key={b.id}
             onPress={() => {
-              scrollRef.current?.scrollTo({ x: i * (BANNER_W + 12), animated: true });
-              setCurrent(i);
+              Animated.sequence([
+                Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+                Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+              ]).start();
+              setTimeout(() => setCurrent(i), 200);
             }}
           >
             <View style={[
@@ -90,7 +82,6 @@ export function BannerCarousel() {
 
 const styles = StyleSheet.create({
   wrapper: { paddingHorizontal: 16, marginTop: 12 },
-  scrollContent: { gap: 12, paddingRight: 16 },
   banner: { height: BANNER_H, borderRadius: 18, overflow: 'hidden', justifyContent: 'center' },
   bgImage: { ...StyleSheet.absoluteFillObject },
   overlay: { flex: 1, flexDirection: 'row', alignItems: 'center', padding: 18, gap: 12 },
